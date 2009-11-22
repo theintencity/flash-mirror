@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!-- Copyright (c) 2009, Kundan Singh. All Rights Reserved. -->
+
+<!--
+A simple Flash Video application that demonstrates how to display your camera in mirror mode, take snapshot photos
+from your camera and do full-screen. The application requires Flash Player 10.0.22 or higher.
+-->
+
+<mx:Application xmlns:mx="http://www.adobe.com/2006/mxml" layout="absolute" 
+	creationComplete="created()" applicationComplete="completed()" viewSourceURL="srcview/index.html">
+	
+	<mx:Style>
+		/*
+		 * Styles for this application and other user interface elements.
+		 */
+		Application {
+			theme-color: #ffffff;
+		}	
+		Button {
+			corner-radius: 0;
+			fill-alpha: 0.1, 0.1;
+		}
+		.buttonBar {
+			horizontal-gap: 2;
+			bottom: 10;
+			horizontal-center: 0;
+		}
+		Alert {
+			corner-radius: 0;
+			drop-shadow-enabled: true;
+			shadow-distance: 4;
+			shadow-direction: right;
+		}
+	</mx:Style>
+	
+	<mx:Script>
+		<![CDATA[
+			import mx.graphics.codec.JPEGEncoder;
+			import mx.events.ResizeEvent;
+			import mx.controls.Alert;
+			import mx.core.UIComponent;
+			
+			/**
+			 * The camera object that is selected.
+			 */
+			private var cam:Camera;
+			
+			/**
+			 * The video display object.
+			 */
+			private var video:Video;
+
+			/**
+			 * The file download reference for taking a snapshot.
+			 */
+			private var file:FileReference;
+			
+			[Bindable]
+			/**
+			 * Whether the application is in full screen mode or not?
+			 */
+			private var fullScreen:Boolean = false;
+			
+			[Bindable]
+			/**
+			 * Whether we are currently taking snapshot or not?
+			 */
+			private var snapshot:Boolean = false;
+			
+			/**
+			 * When the application is created, take the default camera and create a Video display
+			 * component. Attach the video display with the camera. And attach the display to the 
+			 * application view. On MacOS the built-in camera name is fixed, but for some reason
+			 * the camera is not selected by default by Flash.
+			 */
+			private function created():void
+			{
+				try {
+					var index:int = Camera.names.indexOf('USB Video Class Video');
+					cam = index >= 0 ? Camera.getCamera(index.toString()) : Camera.getCamera();
+					cam.setLoopback(false);
+					cam.setMode(640, 480, 30);
+				}
+				catch (e:Error) {
+					Alert.show("Flash Player is not able to access your camera");
+				}
+				
+				video = new Video(640, 480);
+				video.smoothing = true;
+				video.attachCamera(cam);
+				
+				var wrap:UIComponent = new UIComponent();
+				wrap.percentWidth = wrap.percentHeight = 100;
+				wrap.addEventListener(ResizeEvent.RESIZE, resizeVideoHandler, false, 0, true);
+				wrap.addChild(video);
+				addChildAt(wrap, 0);
+			}
+			
+			/**
+			 * Implement the mirror mode of teh video display. It uses a matrix transform to flip the
+			 * video horizontally.
+			 */
+			private function resizeVideoHandler(event:ResizeEvent):void
+			{
+				var ratio:Number = 4/3;
+				if (video != null) {
+					var m:Matrix = new Matrix();
+					var parent:DisplayObject = video.parent;
+					m.scale(-Math.max(parent.width, ratio*parent.height)/640, Math.max(parent.height, (1/ratio)*parent.width)/480);
+					m.translate(Math.max(parent.width, ratio*parent.height)-(Math.max(parent.width, ratio*parent.height)-parent.width)/2, -(Math.max(parent.height, (1/ratio)*parent.width)-parent.height)/2);
+					trace("video transform " + m.a + "," + m.b + "," + m.c + "," + m.d + "," + m.tx + "," + m.ty);
+					video.transform.matrix = m; 
+				}
+			}
+			
+			/**
+			 * When the application is loaded completely, listen for display state change event on the stage.
+			 */
+			private function completed():void
+			{
+				systemManager.stage.addEventListener(FullScreenEvent.FULL_SCREEN, fullScreenChangeHandler, false, 0, true);
+			}
+			
+			/**
+			 * When the user clicks on the full screen button, toggle the full screen mode.
+			 */
+			private function fullScreenHandler():void
+			{
+				try {
+					stage.displayState = stage.displayState == StageDisplayState.FULL_SCREEN ? StageDisplayState.NORMAL : StageDisplayState.FULL_SCREEN;
+				}
+				catch (e:Error) {
+					Alert.show("Cannot do fullScreen");
+				}
+			}
+			
+			/**
+			 * When the stage's display state changes, store the full screen state.
+			 */
+			private function fullScreenChangeHandler(event:FullScreenEvent):void
+			{
+				fullScreen = event.fullScreen;
+			}
+			
+			/**
+			 * When the user clicks on the snapshot button, pause the video, take the bitmap data of the video,
+			 * encode the bitmap data to JPEG and prompt the user to save the JPEG file.
+			 */
+			private function snapshotHandler():void
+			{
+				if (snapshot == false) {
+
+					snapshot = true;
+					video.attachCamera(null);
+
+					var snap:BitmapData = new BitmapData(this.width, this.height, true);
+					var matrix:Matrix = new Matrix(1, 0, 0, 1, 0, 0);
+					snap.draw(video.parent, matrix);
+					
+					var bm:Bitmap = new Bitmap(snap);
+					var encoder:JPEGEncoder = new JPEGEncoder(100);
+					var jpeg:ByteArray = encoder.encode(snap);
+					
+					file = new FileReference();
+					try {
+						snapshot = true;
+						file.addEventListener(Event.CANCEL, cancelHandler, false, 0, true);
+						file.addEventListener(Event.COMPLETE, completeHandler, false, 0, true);
+						file.save(jpeg, "snapshot.jpg");
+					}
+					catch(e:Error) {
+						Alert.show("You need Flash Player 10 or higher to save your snapshot");
+					}
+				}
+				else {
+					snapshot = false;
+					video.attachCamera(cam);
+				}
+			} 
+			
+			/**
+			 * When the user cancels the file save, revert to the camera mode.
+			 */
+			private function cancelHandler(event:Event):void
+			{
+				file = null;
+				snapshot = false;
+				video.attachCamera(cam);
+			}
+			
+			/**
+			 * When the save completes, revert to the camera mode.
+			 */
+			private function completeHandler(event:Event):void
+			{
+				file = null;
+				snapshot = false;
+				video.attachCamera(cam);
+			}
+		]]>
+	</mx:Script>
+	
+	<!--
+	The bottom button bar has two buttons: Full Screen and Snapshot. The Full Screen button controls the 
+	full screen mode, and toggles to Restore Size in full screen mode. The Snapshot button allows the 
+	user to take the snapshot photo, and toggles to Camera View while snapshot is being taken. The
+	Snapshot button is hidden in full screen mode because Flash Player does not allow save dialog box to
+	appear in full screen mode.
+	-->
+	
+	<mx:HBox styleName="buttonBar">
+		<mx:Button label="{fullScreen ? 'Restore Size' : 'Full Screen'}" width="100" buttonMode="true" 
+			click="fullScreenHandler()"/>
+		<mx:Button label="{snapshot ? 'Camera View' : 'Snapshot'}" width="100" buttonMode="true" visible="{!fullScreen}" 
+			click="snapshotHandler()"/>
+	</mx:HBox>
+	
+</mx:Application>
