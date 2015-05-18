@@ -1,6 +1,11 @@
 # Mirror using Flash Player Video Camera
 
-This project was migrated from https://code.google.com/p/flash-mirror on May 17, 2015.
+> This project was migrated from <https://code.google.com/p/flash-mirror> on May 17, 2015.  
+> Keywords: *FlashPlayer*, *Camera*, *Video*, *Mirror*, *Snapshot*, *JPEG*, *ActionScript*  
+> Members: *theintencity* (owner), *kundan10*  
+> Links: [Demo](http://myprojectguide.org/p/flash-mirror/index.html), [Support](http://groups.google.com/group/myprojectguide),  
+> License: [GNU GPL v3](http://www.gnu.org/licenses/gpl.html)  
+> Others: starred by 9 users  
 
 ## Introduction ##
 
@@ -17,3 +22,4 @@ Click on [http://myprojectguide.org/p/flash-mirror/index.html](http://myprojectg
 This is simple Flash Video application that demonstrates how to display your camera in mirror mode, take snapshot photos from your camera and do full-screen. The application requires Flash Player 10.0.22 or higher.
 
 The main source file is [mirror.mxml](https://github.com/theintencity/flash-mirror/blob/master/src/mirror.mxml). There are changes in the [index.template.html](https://github.com/theintencity/flash-mirror/blob/master/html-template/index.template.html) file as well for allowFullScreen parameter.
+
