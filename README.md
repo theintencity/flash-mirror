@@ -9,7 +9,7 @@
 
 ## Introduction ##
 
-Many people like to see at themselves often in a mirror. Many people spend most of their waking hours in front of computer. Many people who spend most of their waking hours in front of computer also want to see at themselves often in a mirror. If you are such a person, bookmark the [demo](http://myprojectguide.org/p/flash-mirror/index.html) link in your browser and visit often :)
+Many people like to look in the mirror. Many people spend most of their waking hours in front of computer. Many people who spend most of their waking hours in front of computer also want to see at themselves often in a mirror. If you are such a person, bookmark the [demo](http://myprojectguide.org/p/flash-mirror/index.html) link in your browser and visit often :)
 
 Few months ago I was teaching a friend of mine how to program in ActionScript 3.0. This was the example software we developed. I decided to put this available to others who want to work on Camera and Video in ActionScript.
 
