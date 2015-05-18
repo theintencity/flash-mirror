@@ -1,6 +1,6 @@
 # Mirror using Flash Player Video Camera
 
-This project was migrated from https://code.google.com/p/flash-mirror
+This project was migrated from https://code.google.com/p/flash-mirror on May 17, 2015.
 
 ## Introduction ##
 
